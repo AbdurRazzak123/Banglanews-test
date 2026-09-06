@@ -1,0 +1,22 @@
+GOOGLE NEWS SITEMAP — SETUP
+
+This project now includes an automated Google News sitemap.
+
+Files:
+- news-sitemap.xml — contains only recent news articles (last 2 days).
+- tools/generate_news_sitemap.py — reads the public Google Sheet and builds the sitemap.
+- .github/workflows/update-news-sitemap.yml — runs every 30 minutes and updates the sitemap.
+- robots.txt — points Google to both the normal sitemap and News sitemap.
+
+WHY AUTOMATION IS USED
+The site is hosted on GitHub Pages and the articles come from Google Sheets. A static News sitemap would become outdated. The GitHub Action regenerates it automatically.
+
+AFTER UPLOADING THIS PROJECT TO GITHUB
+1. Make sure the repository's GitHub Pages site is still publishing from the same branch/folder as before.
+2. Open the repository's Actions tab and check that "Update Google News Sitemap" runs successfully. You can also use "Run workflow" once manually.
+3. Wait until the first successful run updates news-sitemap.xml.
+4. In Google Search Console > Sitemaps, submit: news-sitemap.xml
+5. Do not submit a new sitemap for every article. Keep this one sitemap and let the workflow update it.
+
+IMPORTANT
+Google News sitemaps should contain only articles from the last two days. Google says to update the sitemap as fresh articles are published. A News sitemap helps discovery/tracking but does not guarantee inclusion in Google News.

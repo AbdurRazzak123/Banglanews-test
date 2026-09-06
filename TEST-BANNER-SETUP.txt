@@ -1,0 +1,11 @@
+বাংলা সংবাদ — TEST BANNER VERSION
+
+এই ZIP শুধু পরীক্ষা করার জন্য। GitHub Pages-এ আপলোড করার পর যদি “TEST BANNER” দেখা যায়, তাহলে ads-loader.js চালু আছে এবং ad slot-এ fallback banner বসছে।
+
+পরের ধাপ:
+1. Google Sheet-এর Ads tab-এ Active ad বসাও।
+2. Image URL ব্যবহার করে আগে পরীক্ষা করা সবচেয়ে সহজ।
+3. Image ad দেখা গেলে Sheet connection কাজ করছে।
+4. এরপর আসল AdSense code বসানো যাবে।
+
+নোট: TEST BANNER নিজে কোনো paid বিজ্ঞাপন নয়; এটি শুধু debugging/test placeholder।

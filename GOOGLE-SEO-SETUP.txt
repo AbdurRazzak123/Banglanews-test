@@ -1,0 +1,20 @@
+বাংলা সংবাদ — Google SEO সেটআপ
+
+Public URL:
+https://abdurrazzak123.github.io/banglanews.2026/
+
+এই প্যাকেজে যোগ/আপডেট করা হয়েছে:
+1. sitemap.xml — গুরুত্বপূর্ণ static page URL-এর sitemap
+2. robots.txt — sitemap URL যুক্ত করা হয়েছে
+3. সব HTML page-এ canonical URL
+4. author, Open Graph URL এবং Twitter card metadata
+5. Homepage-এ WebSite + Organization structured data
+6. details.html-এ Google Sheet থেকে খবর লোড হওয়ার পর NewsArticle structured data, article canonical, title/description এবং OG metadata তৈরি হয়
+
+GitHub Pages deploy করার পর:
+- Google Search Console-এ এই sitemap submit করুন: https://abdurrazzak123.github.io/banglanews.2026/sitemap.xml
+- Homepage URL Inspection করে Test Live URL এবং প্রয়োজন হলে Request Indexing করুন।
+
+গুরুত্বপূর্ণ:
+- Sitemap static pages-এর জন্য। Google Sheet-এর প্রতিটি dynamic article URL server-side generate করা হচ্ছে না, তাই article indexing-এর জন্য homepage/category/home থেকে crawlable links রাখা হয়েছে।
+- Google News inclusion বা Search ranking-এর নিশ্চয়তা কোনো code দিতে পারে না; crawl/indexing সময়সাপেক্ষ।

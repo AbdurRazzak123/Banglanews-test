@@ -1,0 +1,17 @@
+বাংলা সংবাদ — SEO / Google Indexing Setup
+
+Implemented:
+1. sitemap.xml with all static, canonical site pages.
+2. robots.txt now points to the live sitemap.
+3. Self-referencing canonical URLs for static pages.
+4. SEO title/description/robots/Open Graph/Twitter metadata for static pages.
+5. WebSite + Organization structured data on the homepage.
+6. WebPage structured data on static pages.
+7. details.html now dynamically sets the article canonical URL, title, description, Open Graph data and NewsArticle JSON-LD after loading the selected Google Sheet article.
+8. Added a visible editorial byline: বাংলা সংবাদ ডেস্ক.
+9. Fixed news-media.js so it no longer skips the first Google Sheet data row.
+
+Important:
+- Article URLs are generated from Google Sheet IDs at runtime, so this static sitemap lists the stable site pages but not every dynamic article URL.
+- After uploading to GitHub Pages, submit /sitemap.xml in Google Search Console and use URL Inspection > Request indexing for the homepage and a few representative pages.
+- Structured data is a hint; Google does not guarantee rich results or immediate indexing.

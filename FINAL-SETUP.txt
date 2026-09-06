@@ -1,0 +1,21 @@
+বাংলা সংবাদ — Professional Final
+
+এই ভার্সনে:
+1) হোম/ক্যাটাগরি পেজে ১০ লাইনের Summary + একবার “আরও পড়ুন”।
+2) Details পেজে হোমের Summary অংশ বাদ দিয়ে পরের অংশ দেখানো হয়।
+3) Google Sheet: A ID, B Category, C Headline, D Details, E Image1, F Date, G Image2, H Image3, I Video.
+4) Image2 থাকলে Details-এর প্রায় ৩০–৪০ লাইনের পরে দেখানোর ব্যবস্থা আছে। Image3 ও Video optional.
+5) মোবাইলে Category ট্যাগ ছবির উপর নয়, ছবির নিচে থাকে।
+6) Professional scrolling ticker যোগ করা হয়েছে।
+7) Ad slots প্রস্তুত করা হয়েছে। এগুলো এখন placeholder; AdSense approval ও Google-এর দেওয়া ad code পাওয়ার পর placeholder-এর ভিতরে code বসাতে হবে।
+8) Logo: assets/logo.png ফাইলটি নিজের লোগো দিয়ে replace করতে পারো, যদি তোমার বর্তমান template এই path ব্যবহার করে।
+
+নোট: AdSense publisher/client ID বানিয়ে অনুমান করে দেওয়া হয়নি। অনুমোদনের পরে Google-এর আসল code ব্যবহার করবে।
+
+
+LIVE-SYNC CHECK (2026-09-02)
+- News pages explicitly read the Google Sheet tab named "Bangla News".
+- Details page also reads "Bangla News" directly; news-data.json is not the live source.
+- Ads explicitly read the "Ads" tab.
+- Requests use no-store plus a timestamp cache-buster, so browser/CDN cache does not intentionally serve an old sheet response.
+- Reloading the page fetches the current Google Sheet data; no HTML edit is required when news/ad rows change.

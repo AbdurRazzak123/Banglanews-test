@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://abdurrazzak123.github.io/banglanews.2026/sitemap.xml
+Sitemap: https://abdurrazzak123.github.io/banglanews.2026/news-sitemap.xml

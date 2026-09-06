@@ -1,0 +1,73 @@
+বাংলা সংবাদ — Final Google Sheet Setup
+
+A ID
+B Category
+C Headline
+D Details (পুরো খবর)
+E Image1 (ঐচ্ছিক — চাইলে ছবি দিন, না চাইলে ফাঁকা রাখুন)
+F Date
+G Image2 (Optional)
+H Image3 (Optional)
+I Video (Optional)
+
+Homepage/category pages (index.html ছাড়া): Details-এর প্রথম ৩টি ভিজ্যুয়াল লাইন পর্যন্ত summary দেখাবে, তারপর “আরও পড়ুন”। index.html-এর নিজস্ব নিয়ম অপরিবর্তিত। Image1, Image2, Image3 — তিনটিই ঐচ্ছিক; কোনো ছবি না দিলেও শুধু খবর প্রকাশ হবে।
+Details page: আগের নিয়ম অনুযায়ী প্রথম ৩০টি Unicode character বাদ দিয়ে বাকি লেখা দেখাবে। Image2 প্রায় ৩০–৪০ লাইন (টার্গেট ৩৫ লাইন) পরে; Image3 ও Video শেষে/পরবর্তী অংশে।
+Category label মোবাইলে ছবির ওপর আর বসবে না; ছবির নিচে সাদা অংশে থাকবে।
+
+
+================ AD SYSTEM (v12) ================
+একই Google Spreadsheet-এ Ads নামে একটি tab রাখো।
+
+Ads tab-এর ১ম সারি:
+A1 = Position
+B1 = Active
+C1 = Image URL
+D1 = Click URL
+E1 = Title
+F1 = Ad Code
+
+Position-এর অনুমোদিত নাম:
+TOP
+MIDDLE TOP
+MIDDLE BOTTOM
+BOTTOM
+ALL
+MIDDLE (legacy)
+
+চারটি ad slot থাকা page-এ ক্রম:
+1) TOP
+2) MIDDLE TOP
+3) MIDDLE BOTTOM
+4) BOTTOM
+
+*** ১) একই Ad চার জায়গায় চালাতে চাইলে ***
+একটি row-তেই Position = ALL দাও এবং F কলামে সেই একই Adsterra code দাও।
+সিস্টেম ALL-এর code চারটি slot-এ আলাদা আলাদা isolated ad frame-এ চালাবে।
+
+*** ২) চার কোম্পানির চার জায়গায় চারটি Ad চাইলে ***
+চারটি row ব্যবহার করো:
+TOP → Company A
+MIDDLE TOP → Company B
+MIDDLE BOTTOM → Company C
+BOTTOM → Company D
+প্রতিটি row-তে আলাদা Ad Code দিতে পারবে।
+
+*** ৩) একই কোম্পানির ৩ জায়গায় ৩/৪টি আলাদা code চাইলে ***
+প্রতিটি position-এর জন্য আলাদা row দাও। যেমন:
+TOP → Company A / Code 1
+MIDDLE TOP → Company A / Code 2
+BOTTOM → Company A / Code 3
+
+*** ৪) একই code আবার একই/অন্য slot-এ ব্যবহার করতে চাইলে ***
+একই Ad Code একাধিক row-তে কপি করতে পারো। অথবা ALL ব্যবহার করো।
+প্রতিটি slot-এর Ad Code আলাদা live iframe-এর ভিতরে চলে, তাই একই third-party container ID / global variable থাকলেও এক slot-এর সাথে অন্য slot-এর conflict হওয়ার ঝুঁকি অনেক কমে।
+
+Exact position-এর row থাকলে সেটিই আগে নেওয়া হবে। কোনো position-এ exact ad না থাকলে ALL fallback হবে।
+MIDDLE TOP / MIDDLE BOTTOM খালি থাকলে legacy MIDDLE-ও fallback হিসেবে কাজ করবে।
+
+Image URL + Click URL ব্যবহার করলে image ad দেখাবে। Ad Code থাকলে Ad Code-ই আগে ব্যবহার হবে; code ব্যর্থ হলে image fallback হবে।
+
+শুধু Ads tab-এ Active / Ad Code / URL পরিবর্তন করলেই পরের page load-এ নতুন বিজ্ঞাপন আসবে। HTML-এ প্রতিবার code বসাতে হবে না।
+
+গুরুত্বপূর্ণ: Google Spreadsheet ওয়েবসাইট থেকে পড়ার উপযোগীভাবে প্রকাশ/শেয়ার করা থাকতে হবে এবং ad network-এর Terms/Policy মেনে code ব্যবহার করতে হবে।
+==========================================================

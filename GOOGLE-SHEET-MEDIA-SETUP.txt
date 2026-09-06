@@ -1,0 +1,23 @@
+বাংলা সংবাদ — Google Sheet Media Setup
+
+বর্তমান কলাম (আগের মতো):
+A = ID
+B = Category
+C = Title
+D = Details/News text
+E = Image 1 (ঐচ্ছিক)
+F = Date
+
+নতুন optional media কলাম:
+G = Image 2 (ঐচ্ছিক)
+H = Image 3 (ঐচ্ছিক)
+I = Video URL (ঐচ্ছিক)
+
+ব্যবহার:
+- শুধু ১টি ছবি: E পূরণ করুন, G/H/I ফাঁকা রাখুন।
+- ২টি ছবি: E + G
+- ৩টি ছবি: E + G + H
+- ভিডিও: I-তে YouTube URL (youtu.be, watch?v=, shorts, embed) অথবা সরাসরি .mp4/.webm/.ogg URL দিন।
+- ছবি/ভিডিও না দিলে কোনো media block দেখাবে না।
+- হোম/ক্যাটাগরি পেজে existing ৩০ অক্ষরের summary + আরও পড়ুন থাকবে। Details পেজে প্রথম ৩০ অক্ষর বাদ দিয়ে বাকি text থাকবে।
+- Details পেজে E/G/H-এর ছবি এবং I-এর ভিডিও দেখাবে।
