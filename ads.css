@@ -1,74 +1,57 @@
-/* বাংলা সংবাদ — responsive isolated ad system v12 */
-.ad-slot.sheet-ad-slot,
-.ad-slot {
-  width: 100%;
-  max-width: 970px;
-  min-height: 0;
-  height: auto;
-  margin: 18px auto;
-  padding: 0;
-  box-sizing: border-box;
-  display: block;
-  overflow: visible;
-  text-align: center;
-  background: transparent;
+/* বাংলা সংবাদ — FINAL responsive ad CSS
+   No desktop/mobile creative size is forced. The ad provider controls the
+   creative; the slot only prevents page CSS from clipping or hiding it. */
+.ad-slot,
+.ad-slot.sheet-ad-slot {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 16px auto !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  text-align: center !important;
+  background: transparent !important;
+  position: relative !important;
+  clear: both !important;
 }
-
-.ad-slot:empty {
-  display: none;
-}
-
-.ad-slot.ad-loaded {
-  min-height: 0;
-}
-
+.ad-slot:empty { display: block !important; min-height: 0 !important; }
+.ad-slot[data-ad-error] { min-height: 0 !important; }
+.ad-slot.ad-native { isolation: isolate; }
+.ad-slot.ad-native > iframe { background: transparent !important; }
+.ad-slot > a { display: block; width: 100%; text-decoration: none; }
 .ad-slot img {
-  display: block;
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  margin: 0 auto;
-  border: 0;
+  display: block !important;
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 auto !important;
+  border: 0 !important;
 }
-
-.ad-slot > a {
-  display: block;
-  width: 100%;
-  text-decoration: none;
-}
-
 .ad-slot > iframe {
-  display: block;
-  width: 100%;
-  max-width: 970px;
-  min-height: 50px;
-  height: 90px;
-  margin: 0 auto;
-  padding: 0;
-  border: 0;
-  overflow: hidden;
-  background: transparent;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: 250px;
+  min-height: 0 !important;
+  max-height: 700px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: visible !important;
+  background: transparent !important;
 }
-
 @media (max-width: 768px) {
-  .ad-slot.sheet-ad-slot,
-  .ad-slot {
-    width: 100%;
-    max-width: 100%;
-    margin: 12px 0;
-    padding: 0 4px;
-  }
-
-  .ad-slot img,
-  .ad-slot > iframe {
-    max-width: 100%;
-  }
-}
-
-@media (min-width: 769px) {
-  .ad-slot.sheet-ad-slot,
-  .ad-slot {
-    max-width: 970px;
-    margin: 18px auto;
+  .ad-slot,
+  .ad-slot.sheet-ad-slot {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 12px 0 !important;
   }
 }

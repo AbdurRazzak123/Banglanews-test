@@ -18,8 +18,9 @@
   const SHEET_NAME = 'Ads';
   const SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
     '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(SHEET_NAME);
-  const VERSION = 'ads-v12';
-  const MAX_AD_HEIGHT = 620;
+  const VERSION = 'ads-v15-native-final';
+  const MAX_AD_HEIGHT = 700;
+  const NATIVE_WAIT_MS = 8500;
 
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -55,7 +56,7 @@
 
   function safeUrl(v) {
     const x = String(v || '').trim();
-    return /^(https?:|mailto:|tel:)/i.test(x) ? x : '';
+    return /^(https?:|mailto:|tel:|\/\/)/i.test(x) ? x : '';
   }
 
   function getSlots() {
@@ -110,7 +111,7 @@
     const img = document.createElement('img');
     img.src = src;
     img.alt = title || 'Advertisement';
-    img.loading = 'lazy';
+    img.loading = 'eager';
     img.decoding = 'async';
 
     const href = safeUrl(click);
@@ -134,7 +135,7 @@
     // normally inside their own isolated document.
     return '<!doctype html><html><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-      '<style>html,body{margin:0;padding:0;width:100%;min-height:0;background:transparent;overflow:hidden;text-align:center;}*{box-sizing:border-box;max-width:100%;}</style>' +
+      '<style>html,body{margin:0;padding:0;width:100%;min-height:0;background:transparent;overflow:visible;text-align:center;}*{box-sizing:border-box;}</style>' +
       '</head><body>' + code + '</body></html>';
   }
 
@@ -166,7 +167,7 @@
     iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media');
     iframe.style.width = '100%';
     iframe.style.maxWidth = '100%';
-    iframe.style.height = '90px';
+    iframe.style.height = '250px';
     iframe.style.border = '0';
     iframe.style.display = 'block';
     iframe.style.margin = '0 auto';
@@ -182,7 +183,7 @@
           markLoaded(slot, title);
           setTimeout(() => measureIframe(iframe), 50);
           setTimeout(() => measureIframe(iframe), 400);
-          setTimeout(() => measureIframe(iframe), 1500);
+          setTimeout(() => measureIframe(iframe), 6500);
         }
         resolve(ok);
       };
@@ -195,10 +196,31 @@
           doc.write(buildIframeHtml(source));
           doc.close();
 
-          // Give Adsterra/external scripts time to create their banner iframe.
-          setTimeout(() => measureIframe(iframe), 100);
-          setTimeout(() => measureIframe(iframe), 800);
-          setTimeout(() => finish(true), 1600);
+          // Give the provider time to create its creative, then verify that
+          // something actually rendered. The old loader marked every code block
+          // as successful after 1.6s even when the iframe was completely blank.
+          // Native/ad-network snippets are asynchronous: a script element or an
+          // empty wrapper is NOT proof that an ad rendered. Wait for a real
+          // visible creative (or a provider-created iframe/img/object/canvas).
+          const rendered = () => {
+            const body = doc.body;
+            if (!body) return false;
+            const candidates = body.querySelectorAll('iframe, img, object, embed, video, canvas, svg, ins, [data-ad-status], [data-ad], [class*=ad], [id*=ad]');
+            for (const el of candidates) {
+              const r = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+              if (r && r.width > 2 && r.height > 2) return true;
+              if (el.tagName === 'INS' && (el.getAttribute('data-ad-status') || '').toLowerCase() === 'filled') return true;
+            }
+            const text = (body.textContent || '').replace(/\s+/g, ' ').trim();
+            return text.length > 12 && body.getBoundingClientRect().height > 2;
+          };
+
+          const check = () => {
+            measureIframe(iframe);
+            if (rendered()) finish(true);
+          };
+          [100, 500, 1000, 2000, 4000, 6500].forEach(ms => setTimeout(check, ms));
+          setTimeout(() => finish(rendered()), NATIVE_WAIT_MS);
         } catch (e) {
           console.warn('Ad code execution failed:', e);
           finish(false);
@@ -210,7 +232,7 @@
       setTimeout(() => {
         if (!settled && iframe.contentDocument) start();
       }, 0);
-      setTimeout(() => finish(false), 7000);
+      setTimeout(() => finish(false), 9000);
     });
   }
 
