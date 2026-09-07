@@ -1,15 +1,13 @@
 /*
- * বাংলা সংবাদ — Adsterra / Google Sheet Ads Loader v12
+ * বাংলা সংবাদ — Google Sheet Ads Loader v16 DIRECT
  *
  * Google Sheet (Ads):
  * A = Position | B = Active | C = Image URL | D = Click URL | E = Title | F = Ad Code
  *
- * Supported positions:
- * TOP, MIDDLE TOP, MIDDLE BOTTOM, BOTTOM, ALL, MIDDLE (legacy)
- *
- * Each page slot gets its own live ad iframe. This keeps third-party ad
- * globals/container IDs isolated, so the SAME Ad Code can safely be used
- * in 2/3/4 slots and different companies can occupy different slots.
+ * The loader reads the Ads tab on every page load. Ad Code is rendered directly
+ * in the page (the normal method for third-party ad snippets), while image ads
+ * remain the reliable fallback. Slots are rendered one-by-one so providers
+ * that use globals such as `atOptions` do not overwrite another slot's config.
  */
 (function () {
   'use strict';
@@ -18,9 +16,9 @@
   const SHEET_NAME = 'Ads';
   const SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
     '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(SHEET_NAME);
-  const VERSION = 'ads-v15-native-final';
+  const VERSION = 'ads-v16-direct-final';
   const MAX_AD_HEIGHT = 700;
-  const NATIVE_WAIT_MS = 8500;
+  const WAIT_MS = 9000;
 
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -80,7 +78,6 @@
     return '';
   }
 
-  // Exact position wins. ALL is the fallback for any empty position.
   function chooseAd(groups, pos) {
     if (groups[pos] && groups[pos].length) return groups[pos][0];
     if (groups.ALL && groups.ALL.length) return groups.ALL[0];
@@ -125,115 +122,155 @@
     } else {
       slot.appendChild(img);
     }
+
     markLoaded(slot, title);
     return true;
   }
 
-  function buildIframeHtml(code) {
-    // A real about:blank iframe is deliberately used instead of srcdoc.
-    // Adsterra snippets that rely on document.write can therefore execute
-    // normally inside their own isolated document.
-    return '<!doctype html><html><head><meta charset="utf-8">' +
-      '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-      '<style>html,body{margin:0;padding:0;width:100%;min-height:0;background:transparent;overflow:visible;text-align:center;}*{box-sizing:border-box;}</style>' +
-      '</head><body>' + code + '</body></html>';
+  function isVisible(el) {
+    if (!el || !el.getBoundingClientRect) return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 2 && r.height > 2;
   }
 
-  function measureIframe(iframe) {
+  function hasCreative(host) {
+    if (!host) return false;
+    if (host.querySelector('iframe, img, object, embed, video, canvas, svg, ins, [data-ad-status="filled"], [data-ad], [class*=ad], [id*=ad]')) {
+      return Array.from(host.querySelectorAll('iframe, img, object, embed, video, canvas, svg, ins, [data-ad-status="filled"], [data-ad], [class*=ad], [id*=ad]')).some(isVisible);
+    }
+    return host.getBoundingClientRect().height > 2 && (host.textContent || '').trim().length > 12;
+  }
+
+  function copyAttributes(from, to) {
+    for (const attr of Array.from(from.attributes || [])) to.setAttribute(attr.name, attr.value);
+  }
+
+  // Some ad snippets use document.write(). When a dynamically inserted ad
+  // script calls it synchronously, redirect the generated markup into this
+  // slot instead of allowing it to replace the whole news page.
+  function withSafeDocumentWrite(host, fn) {
+    const originalWrite = document.write;
+    const originalWriteln = document.writeln;
+    const append = html => {
+      if (html == null) return;
+      const template = document.createElement('template');
+      template.innerHTML = String(html);
+      host.appendChild(template.content.cloneNode(true));
+    };
+    document.write = append;
+    document.writeln = html => append(String(html == null ? '' : html) + '\n');
     try {
-      const doc = iframe.contentDocument;
-      if (!doc || !doc.body) return;
-      const body = doc.body;
-      const html = doc.documentElement;
-      const height = Math.ceil(Math.max(
-        body.scrollHeight, body.offsetHeight,
-        html.scrollHeight, html.offsetHeight,
-        body.getBoundingClientRect().height
-      ));
-      if (height > 0) iframe.style.height = Math.min(height + 2, MAX_AD_HEIGHT) + 'px';
-    } catch (_) {}
+      return fn();
+    } finally {
+      document.write = originalWrite;
+      document.writeln = originalWriteln;
+    }
   }
 
-  function executeAdCode(slot, code, title) {
+  function executeScriptsInOrder(host, source) {
+    const template = document.createElement('template');
+    template.innerHTML = source;
+
+    const scripts = Array.from(template.content.querySelectorAll('script'));
+    const fragment = template.content.cloneNode(true);
+    fragment.querySelectorAll('script').forEach(s => s.remove());
+    host.appendChild(fragment);
+
+    let chain = Promise.resolve();
+    scripts.forEach(original => {
+      chain = chain.then(() => new Promise(resolve => {
+        const script = document.createElement('script');
+        copyAttributes(original, script);
+        if (original.src) {
+          script.async = false;
+          const restoreWrite = (() => {
+            const originalWrite = document.write;
+            const originalWriteln = document.writeln;
+            const append = html => {
+              if (html == null) return;
+              const template = document.createElement('template');
+              template.innerHTML = String(html);
+              host.appendChild(template.content.cloneNode(true));
+            };
+            document.write = append;
+            document.writeln = html => append(String(html == null ? '' : html) + '\n');
+            return () => {
+              document.write = originalWrite;
+              document.writeln = originalWriteln;
+            };
+          })();
+          const done = () => {
+            restoreWrite();
+            resolve();
+          };
+          script.onload = done;
+          script.onerror = done;
+          host.appendChild(script);
+          // Safety valve for a provider script that never fires load/error.
+          setTimeout(done, WAIT_MS);
+        } else {
+          script.text = original.textContent || '';
+          withSafeDocumentWrite(host, () => host.appendChild(script));
+          resolve();
+        }
+      }));
+    });
+    return chain;
+  }
+
+  async function executeAdCode(slot, code, title) {
     const source = String(code || '').trim();
-    if (!source) return Promise.resolve(false);
+    if (!source) return false;
 
     clear(slot);
+    const host = document.createElement('div');
+    host.className = 'ad-code-host';
+    host.setAttribute('data-ad-renderer', VERSION);
+    host.style.width = '100%';
+    host.style.maxWidth = '100%';
+    host.style.minWidth = '0';
+    host.style.margin = '0 auto';
+    host.style.padding = '0';
+    host.style.textAlign = 'center';
+    host.style.overflow = 'visible';
+    slot.appendChild(host);
 
-    const iframe = document.createElement('iframe');
-    iframe.title = title || 'Advertisement';
-    iframe.setAttribute('scrolling', 'no');
-    iframe.setAttribute('frameborder', '0');
-    iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media');
-    iframe.style.width = '100%';
-    iframe.style.maxWidth = '100%';
-    iframe.style.height = '250px';
-    iframe.style.border = '0';
-    iframe.style.display = 'block';
-    iframe.style.margin = '0 auto';
-    iframe.style.background = 'transparent';
-    slot.appendChild(iframe);
-
-    return new Promise(resolve => {
-      let settled = false;
-      const finish = ok => {
-        if (settled) return;
-        settled = true;
-        if (ok) {
+    let observer;
+    const started = Date.now();
+    try {
+      observer = new MutationObserver(() => {
+        if (hasCreative(host)) {
           markLoaded(slot, title);
-          setTimeout(() => measureIframe(iframe), 50);
-          setTimeout(() => measureIframe(iframe), 400);
-          setTimeout(() => measureIframe(iframe), 6500);
+          observer.disconnect();
         }
-        resolve(ok);
-      };
+      });
+      observer.observe(host, { childList: true, subtree: true, attributes: true });
 
-      const start = () => {
-        try {
-          const doc = iframe.contentDocument;
-          if (!doc) return finish(false);
-          doc.open();
-          doc.write(buildIframeHtml(source));
-          doc.close();
+      await executeScriptsInOrder(host, source);
 
-          // Give the provider time to create its creative, then verify that
-          // something actually rendered. The old loader marked every code block
-          // as successful after 1.6s even when the iframe was completely blank.
-          // Native/ad-network snippets are asynchronous: a script element or an
-          // empty wrapper is NOT proof that an ad rendered. Wait for a real
-          // visible creative (or a provider-created iframe/img/object/canvas).
-          const rendered = () => {
-            const body = doc.body;
-            if (!body) return false;
-            const candidates = body.querySelectorAll('iframe, img, object, embed, video, canvas, svg, ins, [data-ad-status], [data-ad], [class*=ad], [id*=ad]');
-            for (const el of candidates) {
-              const r = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
-              if (r && r.width > 2 && r.height > 2) return true;
-              if (el.tagName === 'INS' && (el.getAttribute('data-ad-status') || '').toLowerCase() === 'filled') return true;
-            }
-            const text = (body.textContent || '').replace(/\s+/g, ' ').trim();
-            return text.length > 12 && body.getBoundingClientRect().height > 2;
-          };
-
-          const check = () => {
-            measureIframe(iframe);
-            if (rendered()) finish(true);
-          };
-          [100, 500, 1000, 2000, 4000, 6500].forEach(ms => setTimeout(check, ms));
-          setTimeout(() => finish(rendered()), NATIVE_WAIT_MS);
-        } catch (e) {
-          console.warn('Ad code execution failed:', e);
-          finish(false);
+      const checks = [100, 400, 1000, 2000, 4000, 6500];
+      for (const ms of checks) {
+        const remaining = ms - (Date.now() - started);
+        if (remaining > 0) await sleep(remaining);
+        if (hasCreative(host)) {
+          markLoaded(slot, title);
+          observer.disconnect();
+          return true;
         }
-      };
+      }
 
-      iframe.addEventListener('load', start, { once: true });
-      // about:blank is normally already loaded by the time the listener is added.
-      setTimeout(() => {
-        if (!settled && iframe.contentDocument) start();
-      }, 0);
-      setTimeout(() => finish(false), 9000);
-    });
+      if (hasCreative(host)) {
+        markLoaded(slot, title);
+        observer.disconnect();
+        return true;
+      }
+    } catch (e) {
+      console.warn('Ad code execution failed:', e);
+    } finally {
+      if (observer) observer.disconnect();
+    }
+
+    return false;
   }
 
   async function render(slot, ad) {
@@ -298,11 +335,16 @@
         if (ad.code || ad.image) groups[pos].push(ad);
       });
 
-      // Render sequentially. Each slot is isolated, so the same third-party
-      // code can be rendered independently in every slot without global-ID clashes.
+      // Sequential execution is intentional: many third-party ad snippets use
+      // one global configuration object. Running them together can cause one
+      // slot to overwrite another slot's configuration before the provider reads it.
       for (let i = 0; i < list.length; i++) {
         const pos = slotPosition(list[i], i, list.length);
-        await render(list[i], chooseAd(groups, pos));
+        const ad = chooseAd(groups, pos);
+        const ok = await render(list[i], ad);
+        if (!ok && ad && (ad.code || ad.image)) {
+          list[i].setAttribute('data-ad-error', 'creative-not-rendered');
+        }
       }
     } catch (e) {
       console.warn('Google Sheet Ads load failed:', e);

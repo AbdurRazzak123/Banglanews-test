@@ -15,7 +15,7 @@ Details page: আগের নিয়ম অনুযায়ী প্রথম �
 Category label মোবাইলে ছবির ওপর আর বসবে না; ছবির নিচে সাদা অংশে থাকবে।
 
 
-================ AD SYSTEM (v12) ================
+================ AD SYSTEM (v16) ================
 একই Google Spreadsheet-এ Ads নামে একটি tab রাখো।
 
 Ads tab-এর ১ম সারি:
@@ -42,7 +42,7 @@ MIDDLE (legacy)
 
 *** ১) একই Ad চার জায়গায় চালাতে চাইলে ***
 একটি row-তেই Position = ALL দাও এবং F কলামে সেই একই Adsterra code দাও।
-সিস্টেম ALL-এর code চারটি slot-এ আলাদা আলাদা isolated ad frame-এ চালাবে।
+সিস্টেম ALL-এর code চারটি slot-এ আলাদা আলাদা করে চালাবে। একই third-party global/config থাকলে conflict কমানোর জন্য slotগুলো একে একে render হয়।
 
 *** ২) চার কোম্পানির চার জায়গায় চারটি Ad চাইলে ***
 চারটি row ব্যবহার করো:
@@ -60,7 +60,7 @@ BOTTOM → Company A / Code 3
 
 *** ৪) একই code আবার একই/অন্য slot-এ ব্যবহার করতে চাইলে ***
 একই Ad Code একাধিক row-তে কপি করতে পারো। অথবা ALL ব্যবহার করো।
-প্রতিটি slot-এর Ad Code আলাদা live iframe-এর ভিতরে চলে, তাই একই third-party container ID / global variable থাকলেও এক slot-এর সাথে অন্য slot-এর conflict হওয়ার ঝুঁকি অনেক কমে।
+Ad Code ওয়েবপেজের slot-এর ভেতরেই চালানো হয়, যাতে Adsterra/অন্যান্য network-এর সাধারণ GitHub Pages integration পদ্ধতি ও page referrer/context ঠিক থাকে। একই global/config ব্যবহার করা code-এর conflict কমাতে slotগুলো sequentially render হয়।
 
 Exact position-এর row থাকলে সেটিই আগে নেওয়া হবে। কোনো position-এ exact ad না থাকলে ALL fallback হবে।
 MIDDLE TOP / MIDDLE BOTTOM খালি থাকলে legacy MIDDLE-ও fallback হিসেবে কাজ করবে।

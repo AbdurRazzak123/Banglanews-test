@@ -55,3 +55,31 @@
     margin: 12px 0 !important;
   }
 }
+
+/* v16 direct ad-code renderer */
+.ad-slot .ad-code-host {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  text-align: center !important;
+  background: transparent !important;
+}
+.ad-slot .ad-code-host > iframe,
+.ad-slot .ad-code-host > img,
+.ad-slot .ad-code-host > object,
+.ad-slot .ad-code-host > embed,
+.ad-slot .ad-code-host > video,
+.ad-slot .ad-code-host > canvas,
+.ad-slot .ad-code-host > svg {
+  max-width: 100% !important;
+}
+.ad-slot .ad-code-host iframe {
+  border: 0 !important;
+  margin: 0 auto !important;
+}
